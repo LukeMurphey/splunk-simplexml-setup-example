@@ -165,7 +165,36 @@ For this example, I'm going to add some text describing the setup page. I can do
         }
 ```
 
+Next, I'll show a warning message if the user doesn't have permission to perform setup:
+
+```
+        render: function () {
+            if(this.userHasAdminAllObjects()){
+                this.$el.html('This is my custom setup page <br /><br /><a href="#" class="btn btn-primary" id="save-config">Save Configuration</a>');
+            }
+            else{
+                this.$el.html("Sorry, you don't have permission to perform setup");
+            }
+        }
+```
 
 ### *[optional]* Step 7: mark your app as requring configuration
 
+If your app requires setup, then you will want to mark your app requiring configuration in app.conf.
+
+To do this, edit your app.conf and set "is_configured" to "false" under the "install" stanza (in "default/apps.conf" within your app):
+
+```
+[install]
+is_configured = false
+```
+
 ### *[optional]* Step 8: add a link to the setup page in your navigation
+
+You may want to include a link to your setup page from your app's navigation. To do so, just modify the default nav at "default/data/ui/nav/default.xml" to include a link to the view "setup". In my case, the navigation looks like this:
+
+```
+<nav color="#f37802">
+  <a href='setup'>Configuration</a>
+</nav>
+```

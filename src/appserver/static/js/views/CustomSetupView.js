@@ -6,12 +6,10 @@ require.config({
 
 define([
     "underscore",
-    "backbone",
     "jquery",
     "setup_view",
 ], function(
     _,
-    Backbone,
     $,
     SetupView
 ){

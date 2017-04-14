@@ -38,7 +38,7 @@ define([
         },
         
         render: function () {
-            this.$el.html('<a href="#" class="btn btn-primary" id="save-config">Save Configuration</a>');
+            this.$el.html('This is my custom setup page <br /><br /><a href="#" class="btn btn-primary" id="save-config">Save Configuration</a>');
         }
     });
 });

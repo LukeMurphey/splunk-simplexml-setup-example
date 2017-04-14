@@ -38,7 +38,12 @@ define([
         },
         
         render: function () {
-            this.$el.html('This is my custom setup page <br /><br /><a href="#" class="btn btn-primary" id="save-config">Save Configuration</a>');
+            if(this.userHasAdminAllObjects()){
+                this.$el.html('This is my custom setup page <br /><br /><a href="#" class="btn btn-primary" id="save-config">Save Configuration</a>');
+            }
+            else{
+                this.$el.html("Sorry, you don't have permission to perform setup");
+            }
         }
     });
 });

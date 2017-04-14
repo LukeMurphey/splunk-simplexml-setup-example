@@ -55,7 +55,7 @@ Next, copy in the SetupView.js file from https://gist.github.com/LukeMurphey/a44
 
 This file includes a base class that simplifies the process of making a SimpleXML setup view.
 
-### Step 4: create your setup Javascript view
+### Step 4: create your custom setup Javascript view
 Next, create a custom setup view. In my case, I am going to name my view "CustomSetupView.js". I will put this file at "appserver/static/js/views/CustomSetupView.js" within my app.
 
 To start, I will add the following at the top of the file to import the SetupView base class that I added in the previous step. Make sure to change the name of the app accordingly (i.e. replace "simplexml_setup" with the name of your app).
@@ -111,11 +111,46 @@ define([
 });
 ```
 
+### Step 5: load the custom SimpleXML view in the view
 
-### Step 5: add your custom setup code
+Next, we need to wire up the view above to the SimpleXML setup view. To do this, create a file named "setup.js" in "appserver/static/setup.js".
+
+The file should look something like the file below. Make sure to change the name of the app to match the name of your app (replace "simplexml_setup" with your app name). Also, replace "CustomSetupView" to match the name of the file you made in the previous step if you didn't name it "CustomSetupView").
+
+```
+require.config({
+    paths: {
+        custom_setup: "../app/simplexml_setup/js/views/CustomSetupView"
+    }
+});
+
+require([
+         "jquery",
+         "custom_setup",
+         "splunkjs/mvc/simplexml/ready!"
+     ], function(
+         $,
+         CustomSetupView
+     )
+     {
+         
+         var customSetupView = new CustomSetupView({
+        	 el: $('#setupView')
+         });
+         
+         customSetupView.render();
+     }
+);
+```
+
+Restart your Splunk install and open the setup page. It should look something like this:
+
+![Setup page image](https://github.com/LukeMurphey/splunk-simplexml-setup-example/blob/master/custom_setup.png)
+
+### Step 6: add your custom setup code
 
 
 
-### *[optional]* Step 6: mark your app as requring configuration
+### *[optional]* Step 7: mark your app as requring configuration
 
-### *[optional]* Step 7: add a link to the setup page in your navigation
+### *[optional]* Step 8: add a link to the setup page in your navigation

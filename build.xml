@@ -1,5 +1,10 @@
 
 <project default="package" name="simplexml_setup">
 	<import file="basebuild.xml"/>
+
+    <target name="splunk.refresh" description="Refresh Splunk" depends="verify_splunk_home">
+    	<reload_conf endpoint="nav" />
+    	<reload_conf endpoint="views" />
+    </target>
 </project>
 		

@@ -1,5 +1,5 @@
 # Creating a SimpleXML Setup View in Splunk
-This is an example of how to create a setup page in Splunk using SimpleXML and Javascript as an alernative to Splunk setup.xml.
+This is an example of how to create a setup page in Splunk using SimpleXML and Javascript as an alternative to Splunk setup.xml.
 
 ## Why would I want this?
 
@@ -16,7 +16,7 @@ This is only going to work in Splunk 6.2+. This because Splunk didn't support th
 
 ## How do I make a SimpleXML setup view?
 
-This tutorial is going to assume you already have a basic app in existence.
+This tutorial is going to assume you already know how to make a basic Sp;unk app and have the ability to write some SplunkJS backbone views. See the sample app code in this repository or install the simplexml_setup Splunk app to use it as an example.
 
 ### Step 1: create the redirect setup block
 First, you will need a setup.xml page under the apps "default" directory. The file will be placed in: default/setup.xml.
@@ -68,7 +68,7 @@ require.config({
 });
 ```
 
-Next, I declare the rest of the class under the require config line I just made (change "CustomSetupView" to match the name of your file if you named it something different).
+Next, I declare the rest main body of the class under the require config line I just made above. Change "CustomSetupView" to match the name of your file if you named it something different.
 
 ```
 define([
@@ -154,8 +154,11 @@ So far, the setup page really doesn't do too much. Now you need to add your own 
 Here are a couple of pointers as you create your custom setup view:
 
  1) Make sure that this.setConfigured() is called when your app completes setup. setConfigured() will tell Splunk to consider the app configured so that it no longer redirects users to the setup page.
- 2) Check to make sure that the user has permission to perform setup. You can determine if the user has the "admin_all_objects" capability by calling using the function userHasAdminAllObjects() which will return true of the user has "admin_all_objects". You can also use hasCapability() to determine if the user has a particular capability. You can call this function like this: this.hasCapability('admin_all_objects').
-  3) You may want to hide the setup page if the user doesn't have permission to setup the app. In this case, you could have your do the permission check and then show a warning instead of the setup page if the user lacks permission.
+ 2) You should put your code that performs the setup operations in saveConfig(), just before the call to setConfigured().
+ 3) Check to make sure that the user has permission to perform setup. You can determine if the user has the "admin_all_objects" capability by calling using the function userHasAdminAllObjects() which will return true of the user has "admin_all_objects". You can also use hasCapability() to determine if the user has a particular capability. You can call this function like this: this.hasCapability('admin_all_objects').
+ 4) You may want to hide the setup page if the user doesn't have permission to setup the app. In this case, you could have your do the permission check and then show a warning instead of the setup page if the user lacks permission.
+ 5) You can modify the HTML string in render() to change the HTML of the form.
+ 6) Look in SetupView.js for some hints about how to use Backbone models to save and edit conf files in Splunk.
 
 For this example, I'm going to add some text describing the setup page. I can do this by modifying the HTML in the render() function of CustomSetupView.js:
 

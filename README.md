@@ -149,6 +149,21 @@ Restart your Splunk install and open the setup page. It should look something li
 
 ### Step 6: add your custom setup code
 
+So far, the setup page really doesn't do too much. Now you need to add your own code that does what custom setup you want. This is largely out of scope for this tutorial. See http://dev.splunk.com/view/webframework-splunkjsstack/SP-CAAAEMT for some help for writing SplunkJS.
+
+Here are a couple of pointers as you create your custom setup view:
+
+ 1) Make sure that this.setConfigured() is called when your app completes setup. setConfigured() will tell Splunk to consider the app configured so that it no longer redirects users to the setup page.
+ 2) Check to make sure that the user has permission to perform setup. You can determine if the user has the "admin_all_objects" capability by calling using the function userHasAdminAllObjects() which will return true of the user has "admin_all_objects". You can also use hasCapability() to determine if the user has a particular capability. You can call this function like this: this.hasCapability('admin_all_objects').
+  3) You may want to hide the setup page if the user doesn't have permission to setup the app. In this case, you could have your do the permission check and then show a warning instead of the setup page if the user lacks permission.
+
+For this example, I'm going to add some text describing the setup page. I can do this by modifying the HTML in the render() function of CustomSetupView.js:
+
+```
+        render: function () {
+            this.$el.html('This is my custom setup page <br /><br /><a href="#" class="btn btn-primary" id="save-config">Save Configuration</a>');
+        }
+```
 
 
 ### *[optional]* Step 7: mark your app as requring configuration

@@ -1,0 +1,5 @@
+
+<project default="package" name="simplexml_setup">
+	<import file="basebuild.xml"/>
+</project>
+		

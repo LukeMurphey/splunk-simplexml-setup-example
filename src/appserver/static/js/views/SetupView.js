@@ -130,7 +130,7 @@ define([
         getAppConfig: function(){
 
             // Use the current app if the app name is not defined
-            if(this.app_name === null){
+            if(this.app_name === null || this.app_name === undefined){
                 this.app_name = mvc_utils.getCurrentApp();
             }
 
@@ -201,6 +201,11 @@ define([
          * If it does exist, it will modify the existing credential.
          */
         saveEncryptedCredential: function(name, username, password, realm){
+
+            // Put a default for the realm
+            if(typeof realm == "undefined"){
+                realm = "";
+            }
 
             // Create a reference to the stanza name so that we can find if a credential already exists
             var stanza = realm + ":" + name + ":";

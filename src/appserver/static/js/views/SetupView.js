@@ -149,6 +149,18 @@ define([
         },
 
         /**
+         * Make the stanza name for a entry in the storage/passwords endpoint from the username and realm.
+         */
+        makeStorageEndpointStanza: function(username, realm){
+
+            if(this.isEmpty(realm)){
+                realm = "";
+            }
+
+            return realm + ":" + username + ":";
+        },
+
+        /**
          * Get the encrypted credential.
          */
         getEncryptedCredential: function(stanza){
@@ -226,22 +238,11 @@ define([
          * 
          * If it does exist, it will modify the existing credential.
          */
-        saveEncryptedCredential: function(name, username, password, realm){
-
-            // Put a default for the realm
-            if(typeof realm == "undefined"){
-                realm = "";
-            }
-
-            // Verify the name
-            if(this.isEmpty(name)){
-                alert("The name field cannot be empty");
-                return;
-            }
+        saveEncryptedCredential: function(username, password, realm){
 
             // Verify the username
-            if(this.isEmpty(name)){
-                alert("The name field cannot be empty");
+            if(this.isEmpty(username)){
+                alert("The username field cannot be empty");
                 return;
             }
 
@@ -252,7 +253,7 @@ define([
             }
 
             // Create a reference to the stanza name so that we can find if a credential already exists
-            var stanza = realm + ":" + name + ":";
+            var stanza = this.makeStorageEndpointStanza(username, realm);
     
             // See if the credential already exists and edit it instead.
             $.when(this.getEncryptedCredential(stanza)).done(
@@ -261,7 +262,7 @@ define([
                 function(credentialModel){
 
                     // Save changes to the existing entry
-                    this.postEncryptedCredential(credentialModel, name, password, realm);
+                    this.postEncryptedCredential(credentialModel, username, password, realm);
 
                     // Run any post success function calls
                     this.credentialSuccessfullySaved(false);
@@ -277,7 +278,7 @@ define([
                     });
 
                     // Save it
-                    this.postEncryptedCredential(credentialModel, name, username, password, realm);
+                    this.postEncryptedCredential(credentialModel, username, password, realm);
 
                     // Run any post success function calls
                     this.credentialSuccessfullySaved(false);
@@ -290,7 +291,7 @@ define([
         /**
          * Save the encrypted crendential.
          */
-        postEncryptedCredential: function(credentialModel, name, username, password, realm){
+        postEncryptedCredential: function(credentialModel, username, password, realm){
 
             // Use the current app if the app name is not defined
             if(this.app_name === null){
@@ -299,7 +300,7 @@ define([
 
             // Modify the model
             credentialModel.entry.content.set({
-                name: name,
+                name: username,
                 password: password,
                 username: username,
                 realm: realm

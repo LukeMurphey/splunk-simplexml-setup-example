@@ -129,7 +129,7 @@ define([
             this.encrypted_credential = null;
 
             this.capabilities = null;
-            this.is_using_free_license = null;
+            this.is_using_free_license = $C.SPLUNKD_FREE_LICENSE;
 
             // Start the process of the getting the app.conf settings
             this.getAppConfig();
@@ -451,29 +451,6 @@ define([
 	                }.bind(this)
 	            });
         	}
-
-			// See if the user is running the free license
-			if(this.capabilities.length === 0 && this.is_using_free_license === null){
-
-				uri = Splunk.util.make_url("/splunkd/__raw/services/licenser/groups/Free?output_mode=json");
-
-				// Do a call to see if the host is running the free license
-	            jQuery.ajax({
-	            	url:     uri,
-	                type:    'GET',
-	                async:   false,
-	                success: function(result) {
-
-	                	if(result !== undefined){
-	                		this.is_using_free_license = result.entry[0].content['is_active'];
-	                	}
-						else{
-							this.is_using_free_license = false;
-						}
-
-	                }.bind(this)
-	            });
-			}
 
 			// Determine if the user should be considered as having access
 			if(this.is_using_free_license){

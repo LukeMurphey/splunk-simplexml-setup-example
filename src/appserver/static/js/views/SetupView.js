@@ -11,6 +11,8 @@
  *   2) Call this classes initialize() function in your classes initialize() function.
  *   3) Call setConfigured() when your class completes setup. This will mark the app as configured.
  * 
+ * 
+ * 
  * Below is a short example of of the use of this class:
  
 require.config({
@@ -69,6 +71,7 @@ define([
     "splunkjs/mvc",
     "jquery",
     "models/SplunkDBase",
+    "collections/SplunkDsBase",
     "splunkjs/mvc/simplesplunkview",
     "util/splunkd_utils",
     "splunkjs/mvc/utils"
@@ -78,6 +81,7 @@ define([
     mvc,
     $,
     SplunkDBaseModel,
+    SplunkDsBaseCollection,
     SimpleSplunkView,
     splunkd_utils,
     mvc_utils
@@ -93,6 +97,13 @@ define([
         url: "storage/passwords",
 	    initialize: function() {
 	    	SplunkDBaseModel.prototype.initialize.apply(this, arguments);
+	    }
+	});
+
+	var EncryptedCredentials = SplunkDsBaseCollection.extend({
+	    url: "storage/passwords",
+	    initialize: function() {
+	      SplunkDsBaseCollection.prototype.initialize.apply(this, arguments);
 	    }
 	});
 
@@ -122,6 +133,9 @@ define([
 
             // Start the process of the getting the app.conf settings
             this.getAppConfig();
+
+            // This stores a list of existing credentials
+            this.credentials = null;
         },
 
         /**
@@ -161,6 +175,45 @@ define([
         },
 
         /**
+         * Get the encrypted credential by realm.
+         */
+        getEncryptedCredentialByRealm: function(realm){
+    
+            // Get a promise ready
+            var promise = jQuery.Deferred();
+
+            // Get the credentials
+        	credentials = new EncryptedCredentials();
+        	
+        	credentials.fetch({
+                success: function(credentials) {
+                  console.info("Successfully retrieved the list of credentials");
+                  
+                  // Find the credential
+                  credentialModel = null;
+
+                  for(var c = 0; c < credentials.models.length; c++){
+                      
+                      // Stop if we found the item with the given realm
+                      if(credentials.models[c].entry.content.attributes.realm === realm){
+                          credentialModel = credentials.models[c];
+                          break;
+                      }
+                  }
+
+                  // Resolve with the credential we found
+                  promise.resolve(credentialModel);
+                },
+                error: function() {
+                  console.error("Unable to fetch the credential");
+                  promise.reject();
+                }
+            });
+
+            return promise;
+        },
+
+        /**
          * Get the encrypted credential.
          */
         getEncryptedCredential: function(stanza){
@@ -191,8 +244,8 @@ define([
         /**
          * This is called when a credential was successfully saved.
          */
-        credentialSuccessfullySaved: function(created_new){
-            
+        credentialSuccessfullySaved: function(created_new_entry){
+            // TODO
         },
 
         /**
@@ -262,10 +315,12 @@ define([
                 function(credentialModel){
 
                     // Save changes to the existing entry
-                    this.postEncryptedCredential(credentialModel, username, password, realm);
+                    $.when(this.postEncryptedCredential(credentialModel, username, password, realm)).done(function(){
+                        // Run the function that happens when a credential was saved
+                        this.credentialSuccessfullySaved(false);
+                    }.bind(this));
 
-                    // Run any post success function calls
-                    this.credentialSuccessfullySaved(false);
+                    
                 }.bind(this)
             )
             .fail(
@@ -278,13 +333,13 @@ define([
                     });
 
                     // Save it
-                    this.postEncryptedCredential(credentialModel, username, password, realm);
-
-                    // Run any post success function calls
-                    this.credentialSuccessfullySaved(false);
+                    $.when(this.postEncryptedCredential(credentialModel, username, password, realm)).done(function(){
+                        // Run the function that happens when a credential was saved
+                        this.credentialSuccessfullySaved(true);
+                    }.bind(this));
     
                 }.bind(this)
-            )
+            );
 
         },
 
@@ -292,6 +347,9 @@ define([
          * Save the encrypted crendential.
          */
         postEncryptedCredential: function(credentialModel, username, password, realm){
+
+            // Get a promise ready
+        	var promise = jQuery.Deferred();
 
             // Use the current app if the app name is not defined
             if(this.app_name === null){
@@ -317,13 +375,20 @@ define([
                 // If successful, show a success message
                 saveResponse.done(function(model, response, options){
                     console.info("Credential was successfully saved");
+
+                    promise.resolve(model, response, options);
                 }.bind(this))
 
                 // Otherwise, show a failure message
                 .fail(function(response){
                     console.warn("Credential was not successfully updated");
+
+                    promise.reject(response);
                 }.bind(this));
             }
+
+            // Return the promise
+            return promise;
         },
 
         /**
@@ -420,6 +485,9 @@ define([
 
         },
 
+        /**
+         * Return true if the user has 'admin_all_objects'.
+         */
         userHasAdminAllObjects: function(){
             return this.hasCapability('admin_all_objects');
         }

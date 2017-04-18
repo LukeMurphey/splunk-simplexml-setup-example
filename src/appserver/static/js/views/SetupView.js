@@ -245,7 +245,7 @@ define([
          * This is called when a credential was successfully saved.
          */
         credentialSuccessfullySaved: function(created_new_entry){
-            // TODO
+            // Fill this in when sub-classing
         },
 
         /**

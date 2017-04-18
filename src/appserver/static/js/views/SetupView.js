@@ -196,6 +196,32 @@ define([
         },
 
         /**
+         * Return true if the input is undefined, null or is blank.
+         */
+        isEmpty: function(value, allowBlanks){
+
+            // Assign a default for allowBlanks
+            if(typeof allowBlanks == "undefined"){
+                allowBlanks = false;
+            }
+
+            // Test the value
+            if(typeof value == "undefined"){
+                return true;
+            }
+
+            else if(value === null){
+                return true;
+            }
+
+            else if(value === "" && !allowBlanks){
+                return true;
+            }
+
+            return false;
+        },
+
+        /**
          * Save the encrypted crendential. This will create a new encrypted credential if it doesn't exist.
          * 
          * If it does exist, it will modify the existing credential.
@@ -205,6 +231,24 @@ define([
             // Put a default for the realm
             if(typeof realm == "undefined"){
                 realm = "";
+            }
+
+            // Verify the name
+            if(this.isEmpty(name)){
+                alert("The name field cannot be empty");
+                return;
+            }
+
+            // Verify the username
+            if(this.isEmpty(name)){
+                alert("The name field cannot be empty");
+                return;
+            }
+
+            // Verify the password
+            if(this.isEmpty(password, true)){
+                alert("The password field cannot be empty");
+                return;
             }
 
             // Create a reference to the stanza name so that we can find if a credential already exists

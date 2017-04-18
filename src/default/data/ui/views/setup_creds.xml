@@ -1,0 +1,11 @@
+<form hideEdit="true" script="setup_creds.js">
+  <label>Configuration</label>
+  <description>A setup page with credentials</description>
+	<row>
+	   <panel>
+	      <html>
+	         <div id="setupView"></div>
+	      </html>
+	   </panel>
+	</row>
+</form>

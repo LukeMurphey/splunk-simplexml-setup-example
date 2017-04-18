@@ -1,3 +1,4 @@
 <nav color="#f37802">
   <a href='setup'>Configuration</a>
+  <a href='setup_creds'>Credential Setup Example</a>
 </nav>

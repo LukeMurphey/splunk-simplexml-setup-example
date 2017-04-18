@@ -89,6 +89,13 @@ define([
 	    }
 	});
 
+    var EncryptedCredential = SplunkDBaseModel.extend({
+        url: "storage/passwords",
+	    initialize: function() {
+	    	SplunkDBaseModel.prototype.initialize.apply(this, arguments);
+	    }
+	});
+
     return SimpleSplunkView.extend({
         className: "SetupView",
         
@@ -108,6 +115,7 @@ define([
             this.is_app_configured = null;
 
             this.app_config = null;
+            this.encrypted_credential = null;
 
             this.capabilities = null;
             this.is_using_free_license = null;
@@ -138,6 +146,134 @@ define([
                     console.warn("Unable to retrieve the app configuration");
                 }.bind(this)
             });
+        },
+
+        /**
+         * Get the encrypted credential.
+         */
+        getEncryptedCredential: function(stanza){
+
+            // Get a promise ready
+        	var promise = jQuery.Deferred();
+
+            // Make an instance to fetch into
+	        this.encrypted_credential = new EncryptedCredential();
+
+            // Fetch it
+            this.encrypted_credential.fetch({
+                url: splunkd_utils.fullpath('/services/storage/passwords/' + stanza),
+                success: function (model, response, options) {
+                    console.info("Successfully retrieved the encrypted credential");
+                    promise.resolve(model);
+                }.bind(this),
+                error: function () {
+                    console.warn("Unable to retrieve the encrypted credential");
+                    promise.reject();
+                }.bind(this)
+            });
+
+            // Return the promise so that the caller can respond
+            return promise;
+        },
+
+        /**
+         * This is called when a credential was successfully saved.
+         */
+        credentialSuccessfullySaved: function(created_new){
+            
+        },
+
+        /**
+         * Get the name of the app to use for saving entries to.
+         */
+        getAppName: function(){
+            if(this.app_name === null){
+                return mvc_utils.getCurrentApp();
+            }
+            else{
+                return this.app_name;
+            }
+        },
+
+        /**
+         * Save the encrypted crendential. This will create a new encrypted credential if it doesn't exist.
+         * 
+         * If it does exist, it will modify the existing credential.
+         */
+        saveEncryptedCredential: function(name, username, password, realm){
+
+            // Create a reference to the stanza name so that we can find if a credential already exists
+            var stanza = realm + ":" + name + ":";
+    
+            // See if the credential already exists and edit it instead.
+            $.when(this.getEncryptedCredential(stanza)).done(
+
+                // Save changes to the existing credential
+                function(credentialModel){
+
+                    // Save changes to the existing entry
+                    this.postEncryptedCredential(credentialModel, name, password, realm);
+
+                    // Run any post success function calls
+                    this.credentialSuccessfullySaved(false);
+                }.bind(this)
+            )
+            .fail(
+                function(){
+
+                    // Make a new credential instance
+                    credentialModel = new EncryptedCredential({
+                        user: 'nobody',
+                        app: this.getAppName()
+                    });
+
+                    // Save it
+                    this.postEncryptedCredential(credentialModel, name, username, password, realm);
+
+                    // Run any post success function calls
+                    this.credentialSuccessfullySaved(false);
+    
+                }.bind(this)
+            )
+
+        },
+
+        /**
+         * Save the encrypted crendential.
+         */
+        postEncryptedCredential: function(credentialModel, name, username, password, realm){
+
+            // Use the current app if the app name is not defined
+            if(this.app_name === null){
+                this.app_name = mvc_utils.getCurrentApp();
+            }
+
+            // Modify the model
+            credentialModel.entry.content.set({
+                name: name,
+                password: password,
+                username: username,
+                realm: realm
+            }, {
+                silent: true
+            });
+
+            // Kick off the request to edit the entry
+            var saveResponse = credentialModel.save();
+
+            // Wire up a response to tell the user if this was a success
+            if (saveResponse) {
+
+                // If successful, show a success message
+                saveResponse.done(function(model, response, options){
+                    console.info("Credential was successfully saved");
+                }.bind(this))
+
+                // Otherwise, show a failure message
+                .fail(function(response){
+                    console.warn("Credential was not successfully updated");
+                }.bind(this));
+            }
         },
 
         /**

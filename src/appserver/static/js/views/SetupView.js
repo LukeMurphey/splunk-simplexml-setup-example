@@ -161,17 +161,18 @@ define([
             }
 
             // Fetch the cloud status
-            new ServerInfo().fetch().done(function(model){
+            new ServerInfo().fetch().done(
+                function(model){
+                    if(model.entry[0].content.instance_type){
+                        this.is_on_cloud = model.entry[0].content.instance_type === 'cloud';
+                    }
+                    else{
+                        this.is_on_cloud = false;
+                    }
 
-				if(model.entry[0].content.instance_type){
-					this.is_on_cloud = model.entry[0].content.instance_type === 'cloud';
-				}
-				else{
-					this.is_on_cloud = false;
-                }
-
-                promise.resolve(this.is_on_cloud);
-            });
+                    promise.resolve(this.is_on_cloud);
+                }.bind(this)
+            );
 
             return promise;
         },
@@ -263,15 +264,43 @@ define([
             var setterName = 'set' + this.capitolizeFirstLetter(propertyName);
             var getterName = 'get' + this.capitolizeFirstLetter(propertyName);
 
-            if(this[setterName] === undefined){
-                this[setterName] = function(value){
-                    $(selector, this.$el).val(value);
+            if (this[setterName] === undefined) {
+                this[setterName] = function (value) {
+                    if ($.type(value) == "string") {
+                        value = value.trim();
+                    }
+                    var sel = $(selector, this.$el);
+                    if (sel.is(':checkbox')) {
+                        sel.prop('checked', $.type(value) == 'boolean' ? value : value == 'true');
+                    } else if (sel.is('select')) {
+                        if ($.type(value) == 'string' && !this.isEmpty(value)) {
+                            var option = sel.find('option[value="' + value + '"]');
+                            if (option.length) {
+                                option.prop('selected', true);
+                                return;
+                            }
+                        }
+                        sel.find(':selected').prop('selected', false);
+                    } else {
+                        sel.val(value);
+                    }
                 };
             }
 
-            if(this[getterName] === undefined){
-                this[getterName] = function(value){
-                    return $(selector, this.$el).val();
+            if (this[getterName] === undefined) {
+                this[getterName] = function () {
+                    var sel = $(selector, this.$el);
+                    if (sel.is(':checkbox')) {
+                        return sel.prop('checked');
+                    } else if (sel.is('select')) {
+                        return sel.find(':selected').val();
+                    } else {
+                        var retval = sel.val();
+                        if ($.type(retval) == "string") {
+                            retval = retval.trim();
+                        }
+                        return retval;
+                    }
                 };
             }
         },
@@ -298,7 +327,7 @@ define([
             var promise = jQuery.Deferred();
 
             // Get the credentials
-        	credentials = new EncryptedCredentials();
+        	var credentials = new EncryptedCredentials();
         	
             credentials.fetch({
                 success: function (credentials) {
@@ -499,7 +528,7 @@ define([
                 function(){
 
                     // Make a new credential instance
-                    credentialModel = new EncryptedCredential({
+                    var credentialModel = new EncryptedCredential({
                         user: 'nobody',
                         app: this.getAppName()
                     });
